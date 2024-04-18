@@ -21,10 +21,16 @@ class NoteStore: ObservableObject {
     
     func load() async throws {
         let fileURL = try Self.fileURL()
-        guard let data = try? Data(contentsOf: fileURL) else {
-            print("No data found at \(fileURL)")
-            return
+
+        // Check if the file exists before attempting to load data
+        if !FileManager.default.fileExists(atPath: fileURL.path) {
+            print("No file exists at \(fileURL), initializing new notes")
+            self.notes = [] // Initialize with an empty array or default notes
+            return // Return early since there is no data to load
         }
+
+        // Since the file exists, load the data
+        let data = try Data(contentsOf: fileURL)
         self.notes = try JSONDecoder().decode([Note].self, from: data)
         print("Loaded notes: \(self.notes)")
     }

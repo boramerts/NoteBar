@@ -18,11 +18,21 @@ struct CardView: View {
         HStack{
             VStack(alignment: .leading){
                 HStack{
-                    Text(note.title).font(.title3).padding(.bottom,1).fontWeight(.semibold)
+                    Text(note.title)
+                        .font(.title3)
+                        .padding(.bottom,1)
+                        .fontWeight(.semibold)
                     Spacer()
-                    Text(note.date.formatted(.dateTime.day().month(.abbreviated).hour().minute())).padding(.trailing).font(.caption).foregroundColor(.secondary)
+                    Text(note.date.formatted(.dateTime.day().month(.abbreviated).hour().minute()))
+                        .padding(.trailing)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
-                Text(note.note).foregroundColor(.secondary).font(.caption)
+                Text(note.note)
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                    .lineLimit(1)
+                    .multilineTextAlignment(/*@START_MENU_TOKEN@*/.leading/*@END_MENU_TOKEN@*/)
             }
             Spacer()
             Image(systemName: "chevron.right")
@@ -32,10 +42,13 @@ struct CardView: View {
                 .padding()
                 .fontWeight(.bold)
         }
-        .padding(.leading,10).padding(.trailing,10).padding(.top,2).padding(.bottom,2)
+        .padding(.leading,10)
+        .padding(.trailing,10)
+        .padding(.top,2)
+        .padding(.bottom,2)
     }
 }
 
 #Preview {
-    CardView(note: .constant(Note(title: "Note", note: "Lorem ipsum falan filanjnljnljbljbljbljbljbljbljblnnşknşknkşkşnşknknşşknknşşknnkşnşnknkşşknnkşknkşkşn", date: Date.now)))
+    CardView(note: .constant(Note(title: "Note", note:"Lorem ipsum falan filanjnljnljbljbljbljbljbljbljblnnşknşknkşkşnşknk\n nşşknknşşknnkşnşnknkşşknnkşknkşkşn", date: Date.now)))
 }
