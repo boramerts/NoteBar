@@ -57,7 +57,6 @@ struct RichTextEditor: NSViewRepresentable {
 
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
-            print("Text changed")
             self.parent.text = textView.string
         }
 
@@ -68,14 +67,9 @@ struct RichTextEditor: NSViewRepresentable {
             if replacementString == "\n" {
                 // Insert bullet point at the current cursor position
                 let currentText = textView.string as NSString
-                print("textView.string -----------------")
-                print(textView.string)
                 var newText = currentText.replacingCharacters(in: affectedCharRange, with: "\n\u{2022} ")
-                newText.append("\n\u{2022} ")
                 textView.string = newText
                 let newCursorPos = affectedCharRange.location + "\n\u{2022} ".count
-                print("--------------------\nnewCursorPos --------------------")
-                print(affectedCharRange)
                 textView.setSelectedRange(NSRange(location: newCursorPos, length: 0))
                 parent.text = newText
                 return false
