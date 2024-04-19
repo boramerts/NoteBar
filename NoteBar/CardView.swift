@@ -22,15 +22,17 @@ struct CardView: View {
                         .font(.title3)
                         .padding(.bottom,1)
                         .fontWeight(.semibold)
-                    Spacer()
                     Text(note.date.formatted(.dateTime.day().month(.abbreviated).hour().minute()))
                         .padding(.trailing)
-                        .font(.caption)
+                        .font(.footnote)
+                        .fontWeight(.light)
                         .foregroundColor(.secondary)
+                    Spacer()
                 }
                 Text(note.note)
                     .foregroundColor(.secondary)
                     .font(.caption)
+                    .fontWeight(.semibold)
                     .lineLimit(1)
                     .multilineTextAlignment(/*@START_MENU_TOKEN@*/.leading/*@END_MENU_TOKEN@*/)
             }
@@ -41,9 +43,10 @@ struct CardView: View {
                 .frame(width: 10,height: 15)
                 .padding()
                 .fontWeight(.bold)
+                .foregroundColor(.secondary)
         }
         .padding(.leading,10)
-        .padding(.trailing,10)
+        .padding(.trailing,-4)
         .padding(.top,2)
         .padding(.bottom,2)
     }

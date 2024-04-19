@@ -61,6 +61,7 @@ struct ContentView: View {
                 .aspectRatio(contentMode: /*@START_MENU_TOKEN@*/.fill/*@END_MENU_TOKEN@*/)
                 .frame(width: 80,height: 80)
                 .foregroundColor(.yellow)
+                .fontWeight(.bold)
                 .padding()
             
             Text("Welcome to NoteBar!\nPress + to start writing.")
@@ -128,6 +129,6 @@ struct ContentView: View {
 // Preview for development purposes
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView(notes: .constant([]), saveAction: {})
+        ContentView(notes: .constant([Note(title: "New Note", note: "Test note string etc. bla bla", date: Date.now)]), saveAction: {})
     }
 }

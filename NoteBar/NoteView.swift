@@ -85,12 +85,13 @@ struct NoteView: View {
             
             Divider()
             HStack{
-                Toggle(isOn: $isList, label: { Label("List", systemImage: "list.bullet") })
-                    .toggleStyle(.button)
-                
                 Button(action:{isList.toggle()}){
                     Image(systemName: "list.bullet")
-                }.buttonStyle(BorderlessButtonStyle())
+                        .foregroundColor(isList ? .white : .secondary)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(isList ? .yellow : .secondary)
+                
                 Spacer()
                 Button("Quit NoteBar") {
                     NSApplication.shared.terminate(nil)

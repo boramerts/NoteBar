@@ -62,20 +62,47 @@ struct RichTextEditor: NSViewRepresentable {
 
         //TODO: Figure out how to add bullet point when button is pressed!
         func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
-            guard let replacementString = replacementString, parent.isList else { return true }
+            guard let replacementString = replacementString else { return true }
             
-            if replacementString == "\n" {
-                // Insert bullet point at the current cursor position
-                let currentText = textView.string as NSString
-                var newText = currentText.replacingCharacters(in: affectedCharRange, with: "\n\u{2022} ")
-                textView.string = newText
-                let newCursorPos = affectedCharRange.location + "\n\u{2022} ".count
+            if parent.isList && replacementString == "\n" {
+                // Check the affectedCharRange is valid
+                guard NSMaxRange(affectedCharRange) <= (textView.string as NSString).length else {
+                    return false
+                }
+                
+                // Begin an undo grouping
+                textView.undoManager?.beginUndoGrouping()
+                
+                // Register the undo action
+                let undoManager = textView.undoManager
+                undoManager?.registerUndo(withTarget: self, handler: { [oldString = textView.string] selfTarget in
+                    guard NSMaxRange(affectedCharRange) <= (oldString as NSString).length else {
+                        return
+                    }
+                    
+                    textView.string = oldString
+                    textView.setSelectedRange(affectedCharRange)
+                })
+                undoManager?.setActionName("Insert Bullet Point")
+
+                // Apply the bullet and update text storage
+                let bulletPointString = NSAttributedString(string: "\n\u{2022} ", attributes: [.font: textView.font ?? NSFont.systemFont(ofSize: 14)])
+                textView.textStorage?.replaceCharacters(in: affectedCharRange, with: bulletPointString)
+                let newCursorPos = affectedCharRange.location + bulletPointString.length
                 textView.setSelectedRange(NSRange(location: newCursorPos, length: 0))
-                parent.text = newText
+                
+                // End the undo grouping
+                textView.undoManager?.endUndoGrouping()
+                
+                parent.text = textView.string
                 return false
             }
+            
             return true
         }
+
+
+
     }
 }
 
