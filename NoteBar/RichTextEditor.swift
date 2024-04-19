@@ -61,18 +61,21 @@ struct RichTextEditor: NSViewRepresentable {
             self.parent.text = textView.string
         }
 
-        //FIXME: Figure out how to add bullet point when button is pressed!
-        //TODO: Add numbered lists
-        //TODO: Add bold, italic and underline
+        //TODO: Figure out how to add bullet point when button is pressed!
         func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
             guard let replacementString = replacementString, parent.isList else { return true }
             
             if replacementString == "\n" {
                 // Insert bullet point at the current cursor position
                 let currentText = textView.string as NSString
-                let newText = currentText.replacingCharacters(in: affectedCharRange, with: "\n\u{2022} ")
+                print("textView.string -----------------")
+                print(textView.string)
+                var newText = currentText.replacingCharacters(in: affectedCharRange, with: "\n\u{2022} ")
+                newText.append("\n\u{2022} ")
                 textView.string = newText
                 let newCursorPos = affectedCharRange.location + "\n\u{2022} ".count
+                print("--------------------\nnewCursorPos --------------------")
+                print(affectedCharRange)
                 textView.setSelectedRange(NSRange(location: newCursorPos, length: 0))
                 parent.text = newText
                 return false
