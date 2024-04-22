@@ -2,16 +2,30 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var store: NoteStore
+    @EnvironmentObject var settingsStore: SettingsStore
     @Binding var notes: [Note]
     @State private var showingNoteView: Bool = false
+    @State private var showingSettingsView: Bool = false
     @State private var selectedNote: Note?
     @Environment(\.scenePhase) private var scenePhase
     let saveAction: () -> Void
+    
+    private var headTextColor: Color {
+        if settingsStore.themeColor == .white
+        {
+            return .black
+        } else
+        {
+            return .white
+        }
+    }
     
     var body: some View {
         VStack {
             if showingNoteView, let selectedNote = selectedNote, let index = notes.firstIndex(where: { $0.id == selectedNote.id }) {
                 NoteView(note: $notes[index], notes: $notes, isShowingNoteView: $showingNoteView)
+            } else if showingSettingsView{
+                SettingsView(isShowingSettings: $showingSettingsView)
             } else {
                 if notes.isEmpty {
                     EmptyListBody
@@ -40,19 +54,26 @@ struct ContentView: View {
                 Text("NoteBar")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(headTextColor)
                     .frame(alignment: .leading)
                 Spacer()
+                Button(action: {showingSettingsView = true}) {
+                    Image(systemName: "gear")
+                        .resizable()
+                        .frame(width: 18, height: 18)
+                        .foregroundColor(headTextColor)
+                }
+                .buttonStyle(BorderlessButtonStyle())
                 Button(action: addNewNote) {
                     Image(systemName: "plus")
                         .resizable()
                         .frame(width: 15, height: 15)
-                        .foregroundColor(.white)
+                        .foregroundColor(headTextColor)
                 }
                 .buttonStyle(BorderlessButtonStyle())
             }
             .padding()
-            .background(Color.yellow)
+            .background(settingsStore.themeColor)
             
             Spacer()
             
@@ -60,7 +81,7 @@ struct ContentView: View {
                 .resizable()
                 .aspectRatio(contentMode: /*@START_MENU_TOKEN@*/.fill/*@END_MENU_TOKEN@*/)
                 .frame(width: 80,height: 80)
-                .foregroundColor(.yellow)
+                .foregroundColor(settingsStore.themeColor)
                 .fontWeight(.bold)
                 .padding()
             
@@ -84,19 +105,27 @@ struct ContentView: View {
                 Text("NoteBar")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(headTextColor)
                     .frame(alignment: .leading)
                 Spacer()
+                Button(action: {showingSettingsView = true}) {
+                    Image(systemName: "gear")
+                        .resizable()
+                        .frame(width: 18, height: 18)
+                        .foregroundColor(headTextColor)
+                }
+                .buttonStyle(BorderlessButtonStyle())
+                .padding(.trailing,5)
                 Button(action: addNewNote) {
                     Image(systemName: "plus")
                         .resizable()
                         .frame(width: 15, height: 15)
-                        .foregroundColor(.white)
+                        .foregroundColor(headTextColor)
                 }
                 .buttonStyle(BorderlessButtonStyle())
             }
             .padding()
-            .background(Color.yellow)
+            .background(settingsStore.themeColor)
             
             List($notes, id: \.id) { $note in
                 Button(action: {
@@ -130,5 +159,6 @@ struct ContentView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView(notes: .constant([Note(title: "New Note", note: "Test note string etc. bla bla", date: Date.now)]), saveAction: {})
+            .environmentObject(SettingsStore())
     }
 }

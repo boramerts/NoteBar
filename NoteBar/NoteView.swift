@@ -2,11 +2,22 @@ import SwiftUI
 
 struct NoteView: View {
     @Binding var note: Note
+    @EnvironmentObject var settingsStore: SettingsStore
     @Binding var notes: [Note]
     @Binding var isShowingNoteView: Bool // This binding controls the visibility
     @State private var newTitle: String
     @State private var newText: String
     @State private var isList = false
+    
+    private var headTextColor: Color {
+        if settingsStore.themeColor == .white
+        {
+            return .black
+        } else
+        {
+            return .white
+        }
+    }
     
     public init(note: Binding<Note>, notes: Binding<[Note]>, isShowingNoteView: Binding<Bool>) {
         self._note = note
@@ -87,10 +98,10 @@ struct NoteView: View {
             HStack{
                 Button(action:{isList.toggle()}){
                     Image(systemName: "list.bullet")
-                        .foregroundColor(isList ? .white : .secondary)
+                        .foregroundColor(isList ? headTextColor : .secondary)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(isList ? .yellow : .secondary)
+                .tint(isList ? settingsStore.themeColor : .secondary)
                 
                 Spacer()
                 Button("Quit NoteBar") {
@@ -134,5 +145,6 @@ struct NoteView_Previews: PreviewProvider {
             note: .constant(Note(title: "New Note", note: "New Note", date: Date.now)),
             notes: .constant([Note(title: "Existing Note", note: "Details", date: Date.now)]),
             isShowingNoteView: .constant(true))
+        .environmentObject(SettingsStore())
     }
 }

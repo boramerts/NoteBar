@@ -16,6 +16,9 @@
 		908C6DB12BCEB72C003F4D0B /* NoteModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 908C6DB02BCEB72C003F4D0B /* NoteModel.swift */; };
 		908C6DB52BCEB9A9003F4D0B /* NoteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 908C6DB42BCEB9A9003F4D0B /* NoteStore.swift */; };
 		908C6DB72BCEBC6A003F4D0B /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 908C6DB62BCEBC6A003F4D0B /* CardView.swift */; };
+		90CFB1722BD543E100988838 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90CFB1712BD543E100988838 /* SettingsView.swift */; };
+		90CFB1742BD545E400988838 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90CFB1732BD545E400988838 /* UserSettings.swift */; };
+		90CFB1762BD5489500988838 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90CFB1752BD5489500988838 /* SettingsStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +33,9 @@
 		908C6DB02BCEB72C003F4D0B /* NoteModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteModel.swift; sourceTree = "<group>"; };
 		908C6DB42BCEB9A9003F4D0B /* NoteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteStore.swift; sourceTree = "<group>"; };
 		908C6DB62BCEBC6A003F4D0B /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
+		90CFB1712BD543E100988838 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		90CFB1732BD545E400988838 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
+		90CFB1752BD5489500988838 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,11 +70,14 @@
 			children = (
 				908C6D9F2BCEA6A8003F4D0B /* NoteBarApp.swift */,
 				908C6DA12BCEA6A8003F4D0B /* ContentView.swift */,
+				90CFB1712BD543E100988838 /* SettingsView.swift */,
 				908C6DB62BCEBC6A003F4D0B /* CardView.swift */,
 				908C6DB02BCEB72C003F4D0B /* NoteModel.swift */,
 				908C6DAE2BCEA8CC003F4D0B /* NoteView.swift */,
 				908A83E42BD1A8BE008A0B46 /* RichTextEditor.swift */,
 				908C6DB42BCEB9A9003F4D0B /* NoteStore.swift */,
+				90CFB1752BD5489500988838 /* SettingsStore.swift */,
+				90CFB1732BD545E400988838 /* UserSettings.swift */,
 				908C6DA32BCEA6AA003F4D0B /* Assets.xcassets */,
 				908C6DA82BCEA6AA003F4D0B /* NoteBar.entitlements */,
 				908C6DA52BCEA6AA003F4D0B /* Preview Content */,
@@ -159,11 +168,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				908C6DA22BCEA6A8003F4D0B /* ContentView.swift in Sources */,
+				90CFB1722BD543E100988838 /* SettingsView.swift in Sources */,
 				908A83E52BD1A8BE008A0B46 /* RichTextEditor.swift in Sources */,
 				908C6DB12BCEB72C003F4D0B /* NoteModel.swift in Sources */,
+				90CFB1742BD545E400988838 /* UserSettings.swift in Sources */,
 				908C6DA02BCEA6A8003F4D0B /* NoteBarApp.swift in Sources */,
 				908C6DB52BCEB9A9003F4D0B /* NoteStore.swift in Sources */,
 				908C6DB72BCEBC6A003F4D0B /* CardView.swift in Sources */,
+				90CFB1762BD5489500988838 /* SettingsStore.swift in Sources */,
 				908C6DAF2BCEA8CC003F4D0B /* NoteView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -22,6 +22,8 @@ struct CardView: View {
                         .font(.title3)
                         .padding(.bottom,1)
                         .fontWeight(.semibold)
+                        .lineLimit(1)
+                        .multilineTextAlignment(/*@START_MENU_TOKEN@*/.leading/*@END_MENU_TOKEN@*/)
                     Text(note.date.formatted(.dateTime.day().month(.abbreviated).hour().minute()))
                         .padding(.trailing)
                         .font(.footnote)

@@ -10,7 +10,8 @@ import SwiftUI
 @main
 struct NoteBarApp: App {
     @StateObject private var store = NoteStore()
-    
+    @StateObject private var settingsStore = SettingsStore()
+
     var body: some Scene {
         MenuBarExtra("NoteBar", systemImage: "note.text") {
             ContentView(notes: $store.notes) {
@@ -21,14 +22,17 @@ struct NoteBarApp: App {
                         fatalError(error.localizedDescription)
                     }
                 }
-            }.environmentObject(store)
-                .task{
-                    do {
-                        try await store.load()
-                    }   catch {
-                        fatalError(error.localizedDescription)
-                    }
+            }
+            .environmentObject(store)
+            .environmentObject(settingsStore)
+            .task {
+                do {
+                    try await store.load()
+                    try await settingsStore.loadSettings()
+                } catch {
+                    fatalError(error.localizedDescription)
                 }
+            }
         }.menuBarExtraStyle(.window)
     }
 }
