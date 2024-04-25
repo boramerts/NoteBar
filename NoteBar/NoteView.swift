@@ -8,6 +8,8 @@ struct NoteView: View {
     @State private var newTitle: String
     @State private var newText: String
     @State private var isList = false
+    @State private var isBold = false
+    @State private var isItalic = false
     
     private var headTextColor: Color {
         if settingsStore.themeColor == .white
@@ -58,41 +60,10 @@ struct NoteView: View {
             
             Divider()
             
-            RichTextEditor(text: $newText, isList: $isList).padding(.horizontal,10)
+            RichTextEditor(text: $newText, isList: $isList, isBold: $isBold, isItalic: $isItalic)
+                .padding(.horizontal, 10)
             
             Spacer()
-            
-//            TextEditor(text: $newText)
-//                .font(.body)
-//                .padding()
-//                .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                .scrollContentBackground(.hidden)
-//                .onChange(of: isList) { isListEnabled in
-//                    if isListEnabled {
-//                        // If isList is true, insert a bullet point at the start of the text
-//                        DispatchQueue.main.async {
-//                            if !self.newText.starts(with: "\u{2022} ") {
-//                                self.newText = "\u{2022} " + self.newText
-//                            }
-//                        }
-//                    } else {
-//                        // If isList is false, remove the bullet point from the start of the text
-//                        DispatchQueue.main.async {
-//                            if self.newText.starts(with: "\u{2022} ") {
-//                                self.newText.removeFirst(2) // Remove the bullet and the space
-//                            }
-//                        }
-//                    }
-//                }
-//                .onChange(of: newText) { newNoteText in
-//                    guard isList else { return }
-//                    // If there is a new line and `isList` is enabled, add a bullet point
-//                    if newText.hasSuffix("\n") {
-//                        DispatchQueue.main.async {
-//                            self.newText.append("\u{2022} ")
-//                        }
-//                    }
-//                }
             
             Divider()
             HStack{
@@ -102,6 +73,28 @@ struct NoteView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(isList ? settingsStore.themeColor : .secondary)
+                
+                Button(action: {
+                    isBold.toggle()
+                    print("_________________\n isBold")
+                    print(isBold)
+                }) {
+                    Image(systemName: "bold")
+                        .foregroundColor(isList ? headTextColor : .secondary)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(isBold ? settingsStore.themeColor : .secondary)
+                
+                Button(action: {
+                    isItalic.toggle()
+                    print("_________________\n isItalic")
+                    print(isItalic)
+                }) {
+                    Image(systemName: "italic")
+                        .foregroundColor(isList ? headTextColor : .secondary)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(isItalic ? settingsStore.themeColor : .secondary)
                 
                 Spacer()
                 Button("Quit NoteBar") {
