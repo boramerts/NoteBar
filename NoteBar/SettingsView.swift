@@ -27,7 +27,8 @@ struct SettingsView: View {
                 Button(action: {isShowingSettings = false}) {
                     Image(systemName: "chevron.left")
                         .resizable()
-                        .frame(width: 15, height: 15)
+                        .fontWeight(.bold)
+                        .frame(width: 10, height: 15)
                         .foregroundColor(headTextColor)
                 }
                 .buttonStyle(BorderlessButtonStyle())

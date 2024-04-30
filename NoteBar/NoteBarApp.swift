@@ -8,6 +8,7 @@
 import SwiftUI
 
 @main
+
 struct NoteBarApp: App {
     @StateObject private var store = NoteStore()
     @StateObject private var settingsStore = SettingsStore()

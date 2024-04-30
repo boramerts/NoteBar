@@ -48,25 +48,19 @@ struct RichTextEditor: NSViewRepresentable {
         guard let textView = nsView.documentView as? NSTextView else { return }
         
         DispatchQueue.main.async {
-            if self.isBold {
-                context.coordinator.setBold(textView: textView)
-            } else {
-                context.coordinator.removeBold(textView: textView)
+            print("Updating view, isBold: \(self.isBold), isItalic: \(self.isItalic)")
+            if self.isList {
+                context.coordinator.toggleListMode(textView: textView)
             }
             
-            if self.isItalic {
-                context.coordinator.setItalic(textView: textView)
-            } else {
-                context.coordinator.removeItalic(textView: textView)
-            }
+            // Apply text styles after handling list mode to ensure they are not overwritten
+            context.coordinator.toggleFontTrait(textView: textView, trait: .boldFontMask, shouldApply: self.isBold)
+            context.coordinator.toggleFontTrait(textView: textView, trait: .italicFontMask, shouldApply: self.isItalic)
         }
     }
     
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: RichTextEditor
-        var isBold = false
-        var isItalic = false
-        
         
         init(_ parent: RichTextEditor) {
             self.parent = parent
@@ -77,90 +71,79 @@ struct RichTextEditor: NSViewRepresentable {
             self.parent.text = textView.string
         }
         
-        func applyFontTraits(style: NSFontTraitMask, to textView: NSTextView) {
-            guard let textStorage = textView.textStorage, textStorage.length > 0 else { return }
-            
+        // TODO: Removes all formatting when new line is added
+        func toggleFontTrait(textView: NSTextView, trait: NSFontTraitMask, shouldApply: Bool) {
             let fontManager = NSFontManager.shared
             let selectedRange = textView.selectedRange()
             
-            textView.undoManager?.beginUndoGrouping()
-            
-            // Apply or remove style based on current trait
-            textStorage.enumerateAttribute(.font, in: selectedRange, options: []) { (value, range, stop) in
-                if let font = value as? NSFont {
-                    var newFont = font
-                    newFont = fontManager.convert(font, toHaveTrait: style)
-                    textStorage.addAttribute(.font, value: newFont, range: range)
+            if selectedRange.length > 0 {
+                // If there's a selection, apply the style to the selected text.
+                if let font = textView.textStorage?.attribute(.font, at: selectedRange.location, effectiveRange: nil) as? NSFont {
+                    let newFont = shouldApply ? fontManager.convert(font, toHaveTrait: trait) : fontManager.convert(font, toNotHaveTrait: trait)
+                    textView.textStorage?.addAttribute(.font, value: newFont, range: selectedRange)
                 }
+            } else {
+                // Set the style as the default for new text.
+                let currentFont = textView.typingAttributes[.font] as? NSFont ?? NSFont.systemFont(ofSize: 14)
+                let newFont = shouldApply ? fontManager.convert(currentFont, toHaveTrait: trait) : fontManager.convert(currentFont, toNotHaveTrait: trait)
+                textView.typingAttributes[.font] = newFont
             }
-            
-            textView.undoManager?.setActionName(style == .boldFontMask ? "Toggle Bold" : "Toggle Italic")
-            textView.undoManager?.endUndoGrouping()
+
+            // This triggers the text view to refresh and apply new attributes.
+            textView.needsDisplay = true
         }
         
-        func setBold(textView: NSTextView) {
-            print("Bold enabled")
-            applyFontTraits(style: .boldFontMask, to: textView)
-        }
-        
-        func removeBold(textView: NSTextView) {
-            print("Bold disabled")
-            applyFontTraits(style: .unboldFontMask, to: textView)
-        }
-        
-        func setItalic(textView: NSTextView) {
-            print("Italic enabled")
-            applyFontTraits(style: .italicFontMask, to: textView)
-        }
-        
-        func removeItalic(textView: NSTextView) {
-            print("Italic disabled")
-            applyFontTraits(style: .unitalicFontMask, to: textView)
-        }
-        
-        //TODO: Figure out how to add bullet point when button is pressed!
         func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
             guard let replacementString = replacementString else { return true }
             
+            // Handle automatic bullet point insertion
             if parent.isList && replacementString == "\n" {
-                // Check the affectedCharRange is valid
-                guard NSMaxRange(affectedCharRange) <= (textView.string as NSString).length else {
-                    return false
-                }
-                
-                // Begin an undo grouping
-                textView.undoManager?.beginUndoGrouping()
-                
-                // Register the undo action
-                let undoManager = textView.undoManager
-                undoManager?.registerUndo(withTarget: self, handler: { [oldString = textView.string] selfTarget in
-                    guard NSMaxRange(affectedCharRange) <= (oldString as NSString).length else {
-                        return
-                    }
-                    
-                    textView.string = oldString
-                    textView.setSelectedRange(affectedCharRange)
-                })
-                undoManager?.setActionName("Insert Bullet Point")
-                
-                // Apply the bullet and update text storage
-                let bulletPointString = NSAttributedString(string: "\n\u{2022} ", attributes: [.font: textView.font ?? NSFont.systemFont(ofSize: 14)])
-                textView.textStorage?.replaceCharacters(in: affectedCharRange, with: bulletPointString)
-                let newCursorPos = affectedCharRange.location + bulletPointString.length
-                textView.setSelectedRange(NSRange(location: newCursorPos, length: 0))
-                
-                // End the undo grouping
-                textView.undoManager?.endUndoGrouping()
-                
-                parent.text = textView.string
+                let newText = "\u{2022} "  // Bullet character followed by a space
+                let currentText = textView.string as NSString
+                let newString = currentText.replacingCharacters(in: affectedCharRange, with: "\n" + newText)
+                textView.string = newString
+                let newPos = affectedCharRange.location + newText.count + 1  // Move the cursor after the bullet point
+                textView.setSelectedRange(NSRange(location: newPos, length: 0))
                 return false
             }
             
             return true
         }
         
-        
-        
+        func toggleListMode(textView: NSTextView) {
+            guard let textStorage = textView.textStorage else { return }
+            
+            let cursorPosition = textView.selectedRange().location
+            
+            // Determine if we're adding or removing bullet points
+            if parent.isList {
+                // Add a bullet point at the current line if not present
+                let currentLineRange = (textView.string as NSString).lineRange(for: NSRange(location: cursorPosition, length: 0))
+                let currentLineText = (textView.string as NSString).substring(with: currentLineRange)
+                
+                if !currentLineText.trimmingCharacters(in: .whitespaces).starts(with: "\u{2022} ") {
+                    let newLineText = "\u{2022} " + currentLineText
+                    let newAttributedLine = NSAttributedString(string: newLineText, attributes: textView.typingAttributes)
+                    textStorage.replaceCharacters(in: currentLineRange, with: newAttributedLine)
+                }
+            } else {
+                // Remove bullet points from each line where they are present
+                let fullRange = NSRange(location: 0, length: textStorage.length)
+                textStorage.enumerateAttribute(.paragraphStyle, in: fullRange, options: []) { _, range, _ in
+                    let line = (textStorage.string as NSString).substring(with: range)
+                    if line.trimmingCharacters(in: .whitespaces).starts(with: "\u{2022} ") {
+                        let newLine = String(line.dropFirst(2))
+                        let newAttributedLine = NSAttributedString(string: newLine, attributes: textView.typingAttributes)
+                        textStorage.replaceCharacters(in: range, with: newAttributedLine)
+                    }
+                }
+            }
+            
+            textView.setSelectedRange(NSRange(location: cursorPosition, length: 0))  // Maintain cursor position
+            textView.needsDisplay = true  // Trigger view update
+        }
+
+
     }
 }
 
