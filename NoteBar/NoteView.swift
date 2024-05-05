@@ -7,6 +7,7 @@ struct NoteView: View {
     @Binding var isShowingNoteView: Bool // This binding controls the visibility
     @State private var newTitle: String
     @State private var newText: String
+    @State private var newRich: Data
     @State private var isList = false
     @State private var isBold = false
     @State private var isItalic = false
@@ -27,6 +28,7 @@ struct NoteView: View {
         self._isShowingNoteView = isShowingNoteView
         self._newTitle = State(initialValue: note.wrappedValue.title)
         self._newText = State(initialValue: note.wrappedValue.note)
+        self._newRich = State(initialValue: note.wrappedValue.richText)
     }
     
     var body: some View {
@@ -60,7 +62,7 @@ struct NoteView: View {
             
             Divider()
             
-            RichTextEditor(text: $newText, isList: $isList, isBold: $isBold, isItalic: $isItalic)
+            RichTextEditor(text: $newText, richText: $newRich, isList: $isList, isBold: $isBold, isItalic: $isItalic)
                 .padding(.horizontal, 10)
             
             Spacer()
@@ -120,14 +122,18 @@ struct NoteView: View {
     private func saveNote() {
         note.title = newTitle
         note.note = newText
+        note.richText = newRich  // Ensure this line correctly updates the richText
         note.date = Date()
-        
+
         guard let index = notes.firstIndex(where: { $0.id == note.id }) else {
             return
         }
-        notes[index] = note  // Reinforce the update
+        notes[index] = note
+        
+        print("Note saved. note.note:")
+        print(note.note)
+        
         isShowingNoteView = false
-        print("Note updated and view closed.")
     }
 }
 
@@ -135,8 +141,8 @@ struct NoteView: View {
 struct NoteView_Previews: PreviewProvider {
     static var previews: some View {
         NoteView(
-            note: .constant(Note(title: "New Note", note: "New Note", date: Date.now)),
-            notes: .constant([Note(title: "Existing Note", note: "Details", date: Date.now)]),
+            note: .constant(Note(title: "New Note", note: "New Note", richText: Data(), date: Date.now)),
+            notes: .constant([Note(title: "Existing Note", note: "Details", richText: Data(), date: Date.now)]),
             isShowingNoteView: .constant(true))
         .environmentObject(SettingsStore())
     }

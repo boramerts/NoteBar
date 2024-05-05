@@ -55,5 +55,5 @@ struct CardView: View {
 }
 
 #Preview {
-    CardView(note: .constant(Note(title: "Note", note:"Lorem ipsum falan filanjnljnljbljbljbljbljbljbljblnnşknşknkşkşnşknk\n nşşknknşşknnkşnşnknkşşknnkşknkşkşn", date: Date.now)))
+    CardView(note: .constant(Note(title: "Note", note:"Lorem ipsum falan filanjnljnljbljbljbljbljbljbljblnnşknşknkşkşnşknk\n nşşknknşşknnkşnşnknkşşknnkşknkşkşn", richText: Data(), date: Date.now)))
 }

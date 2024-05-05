@@ -13,5 +13,6 @@ struct Note: Identifiable, Codable{
     
     var title: String
     var note: String
+    var richText: Data
     var date: Date
 }

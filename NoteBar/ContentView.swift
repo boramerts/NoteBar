@@ -23,6 +23,7 @@ struct ContentView: View {
     var body: some View {
         VStack {
             if showingNoteView, let selectedNote = selectedNote, let index = notes.firstIndex(where: { $0.id == selectedNote.id }) {
+                
                 NoteView(note: $notes[index], notes: $notes, isShowingNoteView: $showingNoteView)
             } else if showingSettingsView{
                 SettingsView(isShowingSettings: $showingSettingsView)
@@ -148,7 +149,7 @@ struct ContentView: View {
     }
     
     private func addNewNote() {
-        let newNote = Note(title: "", note: "", date: Date())
+        let newNote = Note(title: "", note: "", richText: Data(), date: Date())
         notes.append(newNote)
         selectedNote = newNote
         showingNoteView = true
@@ -158,7 +159,7 @@ struct ContentView: View {
 // Preview for development purposes
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView(notes: .constant([Note(title: "New Note", note: "Test note string etc. bla bla", date: Date.now)]), saveAction: {})
+        ContentView(notes: .constant([Note(title: "New Note", note: "Test note string etc. bla bla", richText: Data(), date: Date.now)]), saveAction: {})
             .environmentObject(SettingsStore())
     }
 }
