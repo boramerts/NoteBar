@@ -39,6 +39,11 @@ struct RichTextEditor: NSViewRepresentable {
         textView.textColor = .white
         textView.font = NSFont.systemFont(ofSize: 14)
         
+        // Load the richText data
+        if let attrString = NSAttributedString(rtf: richText, documentAttributes: nil) {
+            textView.textStorage?.setAttributedString(attrString)
+        }
+        
         // Embed the textView in the scrollView
         scrollView.documentView = textView
         
@@ -49,7 +54,6 @@ struct RichTextEditor: NSViewRepresentable {
         guard let textView = nsView.documentView as? NSTextView else { return }
         
         DispatchQueue.main.async {
-            print("Updating view, isBold: \(self.isBold), isItalic: \(self.isItalic)")
             if self.isList {
                 context.coordinator.toggleListMode(textView: textView)
             }
@@ -127,7 +131,6 @@ struct RichTextEditor: NSViewRepresentable {
             if parent.isList {
                 if !currentLineText.starts(with: "\u{2022} ") {
                     // Add bullet point at the start of the current line if it doesn't have one
-                    print("Adding bullet point to start")
                     let newLineText = "\u{2022} " + currentLineText
                     let replacementRange = NSRange(location: currentLineRange.location, length: currentLineText.count)
                     textStorage.replaceCharacters(in: replacementRange, with: newLineText)
@@ -135,7 +138,6 @@ struct RichTextEditor: NSViewRepresentable {
             } else {
                 if currentLineText.starts(with: "\u{2022} ") {
                     // Remove the bullet point if the line starts with it
-                    print("Removing bullet point")
                     let newLineText = String(currentLineText.dropFirst(2))
                     let replacementRange = NSRange(location: currentLineRange.location, length: currentLineText.count)
                     textStorage.replaceCharacters(in: replacementRange, with: newLineText)

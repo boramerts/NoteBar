@@ -11,7 +11,7 @@ struct NoteView: View {
     @State private var isList = false
     @State private var isBold = false
     @State private var isItalic = false
-    
+
     private var headTextColor: Color {
         if settingsStore.themeColor == .white
         {
@@ -21,6 +21,8 @@ struct NoteView: View {
             return .white
         }
     }
+    
+
     
     public init(note: Binding<Note>, notes: Binding<[Note]>, isShowingNoteView: Binding<Bool>) {
         self._note = note
@@ -109,6 +111,19 @@ struct NoteView: View {
             Spacer()
         }
         .frame(width: 300, height: 400)
+        .onAppear {
+            NSEvent.addLocalMonitorForEvents(matching: .keyDown) { (event) -> NSEvent? in
+                if event.modifierFlags.contains(.command) && event.characters == "b" {
+                    self.isBold.toggle()
+                    return nil
+                }
+                if event.modifierFlags.contains(.command) && event.characters == "i" {
+                    self.isItalic.toggle()
+                    return nil
+                }
+                return event
+            }
+        }
     }
     
     private func deleteNote() {
@@ -124,7 +139,7 @@ struct NoteView: View {
         note.note = newText
         note.richText = newRich  // Ensure this line correctly updates the richText
         note.date = Date()
-
+        
         guard let index = notes.firstIndex(where: { $0.id == note.id }) else {
             return
         }
