@@ -7,15 +7,15 @@ struct RichTextEditor: NSViewRepresentable {
     @Binding var isList: Bool
     @Binding var isBold: Bool
     @Binding var isItalic: Bool
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-    
+
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
         let textView = NSTextView()
-        
+
         // Configure scrollView
         scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = false
@@ -23,8 +23,7 @@ struct RichTextEditor: NSViewRepresentable {
         scrollView.backgroundColor = NSColor.clear
         scrollView.scrollerStyle = .overlay
         scrollView.drawsBackground = false
-        
-        
+
         // Configure textView
         textView.maxSize = NSSize(width: CGFloat.infinity, height: CGFloat.infinity)
         textView.isVerticallyResizable = true
@@ -38,44 +37,45 @@ struct RichTextEditor: NSViewRepresentable {
         textView.allowsUndo = true
         textView.textColor = .white
         textView.font = NSFont.systemFont(ofSize: 14)
-        
+
         // Load the richText data
         if let attrString = NSAttributedString(rtf: richText, documentAttributes: nil) {
             textView.textStorage?.setAttributedString(attrString)
         }
-        
+
         // Embed the textView in the scrollView
         scrollView.documentView = textView
-        
+
         return scrollView // Return the scrollView containing the textView
     }
-    
+
     func updateNSView(_ nsView: NSScrollView, context: Context) {
         guard let textView = nsView.documentView as? NSTextView else { return }
-        
+
         DispatchQueue.main.async {
+            context.coordinator.updateTypingAttributes(textView: textView)
+
             if self.isList {
-                context.coordinator.toggleListMode(textView: textView)
+                context.coordinator.applyListFormatting(textView: textView)
+            } else {
+                context.coordinator.removeListFormatting(textView: textView)
             }
-            
-            // Apply text styles after handling list mode to ensure they are not overwritten
-            context.coordinator.toggleFontTrait(textView: textView, trait: .boldFontMask, shouldApply: self.isBold)
-            context.coordinator.toggleFontTrait(textView: textView, trait: .italicFontMask, shouldApply: self.isItalic)
-            textView.textColor = NSColor.white
+
+            context.coordinator.applyFontTraits(textView: textView, isBold: self.isBold, isItalic: self.isItalic)
         }
     }
-    
+
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: RichTextEditor
-        
+
         init(_ parent: RichTextEditor) {
             self.parent = parent
         }
-        
+
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
             self.parent.text = textView.string
-            if let textStorage = textView.textStorage { // Set rich text
+            if let textStorage = textView.textStorage {
                 do {
                     self.parent.richText = try textStorage.rtf()
                 } catch {
@@ -83,26 +83,10 @@ struct RichTextEditor: NSViewRepresentable {
                 }
             }
         }
-        
-        func toggleFontTrait(textView: NSTextView, trait: NSFontTraitMask, shouldApply: Bool) {
-            let fontManager = NSFontManager.shared
-            let selectedRange = textView.selectedRange()
-            
-            if selectedRange.length > 0 {
-                if let font = textView.textStorage?.attribute(.font, at: selectedRange.location, effectiveRange: nil) as? NSFont {
-                    let newFont = shouldApply ? fontManager.convert(font, toHaveTrait: trait) : fontManager.convert(font, toNotHaveTrait: trait)
-                    textView.textStorage?.addAttribute(.font, value: newFont, range: selectedRange)
-                }
-            } else {
-                let currentFont = textView.typingAttributes[.font] as? NSFont ?? NSFont.systemFont(ofSize: 14)
-                let newFont = shouldApply ? fontManager.convert(currentFont, toHaveTrait: trait) : fontManager.convert(currentFont, toNotHaveTrait: trait)
-                textView.typingAttributes[.font] = newFont
-            }
-        }
-        
+
         func textView(_ textView: NSTextView, shouldChangeTextIn affectedCharRange: NSRange, replacementString: String?) -> Bool {
             guard let replacementString = replacementString else { return true }
-            
+
             // Handle automatic bullet point insertion when Enter key is pressed
             if parent.isList && replacementString == "\n" {
                 let newText = "\u{2022} "
@@ -112,46 +96,75 @@ struct RichTextEditor: NSViewRepresentable {
                 textView.setSelectedRange(NSRange(location: newPos, length: 0))
                 return false
             }
-            
+
+            // Allow backspace to delete bullet points as normal text
             return true
         }
-        
-        func toggleListMode(textView: NSTextView) {
-            guard let textStorage = textView.textStorage else { return }
-            
-            let fullText = textStorage.string as NSString
-            let cursorPosition = textView.selectedRange().location
-            
-            // Get the range for the current line from the cursor position
-            let currentLineRange = fullText.lineRange(for: NSRange(location: cursorPosition, length: 0))
-            let currentLineText = fullText.substring(with: currentLineRange) // Get the whole line text
-            
-            print(currentLineText)
-            
-            if parent.isList {
-                if !currentLineText.starts(with: "\u{2022} ") {
-                    // Add bullet point at the start of the current line if it doesn't have one
-                    let newLineText = "\u{2022} " + currentLineText
-                    let replacementRange = NSRange(location: currentLineRange.location, length: currentLineText.count)
-                    textStorage.replaceCharacters(in: replacementRange, with: newLineText)
-                }
+
+        func updateTypingAttributes(textView: NSTextView) {
+            var attributes = textView.typingAttributes
+            attributes[.font] = textView.font
+            attributes[.foregroundColor] = textView.textColor
+            textView.typingAttributes = attributes
+        }
+
+        func applyFontTraits(textView: NSTextView, isBold: Bool, isItalic: Bool) {
+            let fontManager = NSFontManager.shared
+            var font = textView.font ?? NSFont.systemFont(ofSize: 14)
+
+            if isBold {
+                font = fontManager.convert(font, toHaveTrait: .boldFontMask)
             } else {
-                if currentLineText.starts(with: "\u{2022} ") {
-                    // Remove the bullet point if the line starts with it
-                    let newLineText = String(currentLineText.dropFirst(2))
-                    let replacementRange = NSRange(location: currentLineRange.location, length: currentLineText.count)
-                    textStorage.replaceCharacters(in: replacementRange, with: newLineText)
+                font = fontManager.convert(font, toNotHaveTrait: .boldFontMask)
+            }
+
+            if isItalic {
+                font = fontManager.convert(font, toHaveTrait: .italicFontMask)
+            } else {
+                font = fontManager.convert(font, toNotHaveTrait: .italicFontMask)
+            }
+
+            textView.typingAttributes[.font] = font
+        }
+
+        func applyListFormatting(textView: NSTextView) {
+            guard let textStorage = textView.textStorage else { return }
+            let selectedRange = textView.selectedRange()
+            let fullText = textStorage.string as NSString
+
+            // Apply bullet points to each line in the selected range
+            textStorage.beginEditing()
+            fullText.enumerateSubstrings(in: selectedRange, options: .byLines) { (substring, substringRange, _, _) in
+                if let substring = substring, !substring.starts(with: "\u{2022} ") {
+                    let newSubstring = "\u{2022} " + substring
+                    textStorage.replaceCharacters(in: substringRange, with: newSubstring)
                 }
             }
-            
-            // Correct the cursor position after modifying the text
-            let newPosition = cursorPosition + (parent.isList ? 2 : -2)
-            textView.setSelectedRange(NSRange(location: newPosition, length: 0))
-            textView.needsDisplay = true
+            textStorage.endEditing()
+
+            // Adjust the cursor position
+            textView.setSelectedRange(NSRange(location: selectedRange.location, length: 0))
         }
-        
+
+        func removeListFormatting(textView: NSTextView) {
+            guard let textStorage = textView.textStorage else { return }
+            let selectedRange = textView.selectedRange()
+            let fullText = textStorage.string as NSString
+
+            // Remove bullet points from each line in the selected range
+            textStorage.beginEditing()
+            fullText.enumerateSubstrings(in: selectedRange, options: .byLines) { (substring, substringRange, _, _) in
+                if let substring = substring, substring.starts(with: "\u{2022} ") {
+                    let newSubstring = substring.dropFirst(2)
+                    textStorage.replaceCharacters(in: substringRange, with: String(newSubstring))
+                }
+            }
+            textStorage.endEditing()
+
+            // Adjust the cursor position
+            textView.setSelectedRange(NSRange(location: selectedRange.location, length: 0))
+        }
     }
-    
 }
 
 extension NSAttributedString {
@@ -161,6 +174,3 @@ extension NSAttributedString {
                                       .characterEncoding: String.Encoding.utf8])
     }
 }
-
-
-

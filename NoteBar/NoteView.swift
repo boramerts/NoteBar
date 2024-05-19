@@ -112,6 +112,7 @@ struct NoteView: View {
         }
         .frame(width: 300, height: 400)
         .onAppear {
+            // TODO: Keyboard shortcuts do not work after reopening saved note.
             NSEvent.addLocalMonitorForEvents(matching: .keyDown) { (event) -> NSEvent? in
                 if event.modifierFlags.contains(.command) && event.characters == "b" {
                     self.isBold.toggle()
